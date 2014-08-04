@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <script src="firebase.js"></script>
+    <script src="jquery-1.11.1.min.js"></script>
+    <link rel="stylesheet" href="pure-min.css">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport"
+          content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no"/>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="format-detection" content="telephone=no">
+</head>
+<body>
+
+
+<div>
+    <img id="qrcode">
+</div>
+
+<div id="colorPanel" class="pure-g">
+</div>
+<p>
+
+<form class="pure-form pure-g">
+    <input id="slogan" class="pure-u-2-3" type="text"/>
+</form>
+<button class="pure-button pure-u-2-3" onclick="setSlogan()">set</button>
+</p>
+<p class="pure-g">
+    <button class="pure-button pure-button-primary pure-u-1-2" onclick="startRandom()">random</button>
+    <button class="pure-button pure-u-1-2" onclick="stopRandom()">stop</button>
+</p>
+
+<p class="pure-g">
+    <button class="pure-button pure-u-2-3">
+        <a href="newindex.html">
+            返回
+        </a>
+    </button>
+</p>
+
+<style>
+    .colorBlock {
+        margin: 5px;
+        height: 50px;
+        width: 200px;
+    }
+</style>
+
+<script>
+
+    var QueryString = function () {
+        // This function is anonymous, is executed immediately and
+        // the return value is assigned to QueryString!
+        var query_string = {};
+        var query = window.location.search.substring(1);
+        var vars = query.split("&");
+        for (var i = 0; i < vars.length; i++) {
+            var pair = vars[i].split("=");
+            // If first entry with this name
+            if (typeof query_string[pair[0]] === "undefined") {
+                query_string[pair[0]] = pair[1];
+                // If second entry with this name
+            } else if (typeof query_string[pair[0]] === "string") {
+                var arr = [ query_string[pair[0]], pair[1] ];
+                query_string[pair[0]] = arr;
+                // If third or later entry with this name
+            } else {
+                query_string[pair[0]].push(pair[1]);
+            }
+        }
+        return query_string;
+    }();
+
+    console.log('room:' + JSON.stringify(QueryString));
+
+    var fb = new Firebase("https://colorlive.firebaseio.com/rooms/" + QueryString['room']);
+    var body = document.getElementsByTagName('body')[0];
+
+    var COLORS = [
+        {'backgroundColor': '#cccccc'},
+        {'backgroundColor': '#f54041'},
+        {'backgroundColor': '#63b942'},
+        {'backgroundColor': '#289668'},
+        {'backgroundColor': '#075f9a'},
+        {'backgroundColor': '#ba9b0b'},
+        {'backgroundColor': '#fe3f3d'},
+        {'backgroundColor': 'black'}
+    ]
+
+    var generateColorPanel = function (colors) {
+        var colorPanels = "";
+        for (var i = 0; i < colors.length; i++) {
+            var c = colors[i];
+            colorPanels += "<div><button class='colorBlock pure-button pure-u-1-2' style='"
+                    + "background-color:" + c.backgroundColor
+                    + "' onclick='setColor(this)'>"
+                    + c.backgroundColor
+                    + "</button></div>";
+        }
+        return colorPanels;
+    }
+
+    document.getElementById('colorPanel').innerHTML = generateColorPanel(COLORS);
+
+    var allSettings = {};
+
+    var setAll = function () {
+        fb.set(allSettings);
+    }
+
+    setColor = function (element) {
+        allSettings.backgroundColor = element.style.backgroundColor;
+        allSettings.backgroundColor = element.style.backgroundColor;
+        setAll();
+    }
+
+    setSlogan = function () {
+        allSettings.slogan = document.getElementById('slogan').value;
+        setAll();
+    }
+
+    var randomTimer;
+
+    startRandom = function () {
+        if (randomTimer) {
+            return;
+        }
+        randomTimer = setInterval(function () {
+            allSettings.backgroundColor = COLORS[Math.floor(Math.random() * COLORS.length)].backgroundColor;
+            setAll();
+        }, 2000);
+    }
+
+    stopRandom = function () {
+        if (randomTimer) {
+            window.clearInterval(randomTimer);
+            randomTimer = undefined;
+        }
+    }
+
+    fb.on("value", function (data) {
+        allSettings = data.val();
+        body.style.backgroundColor = allSettings.backgroundColor;
+        $('#qrcode').attr('src', allSettings.qrcode);
+//        allSettings.backgroundColor = body.style.backgroundColor = data.val().bgColor || "white";
+//        allSettings.slogan = document.getElementById('slogan').value = data.val().slogan || "";
+
+    });
+</script>
+</body>
+</html>

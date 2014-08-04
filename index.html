@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <!--<script src="https://cdn.firebase.com/js/client/1.0.18/firebase.js"></script>-->
+    <script src="firebase.js"></script>
+    <script src="jquery-1.11.1.min.js"></script>
+    <script src="jquery.color-2.1.2.min.js"></script>
+    <script type="text/javascript" name="baidu-tc-cerfication"
+            src="http://apps.bdimg.com/cloudaapi/lightapp.js#79cd5a51dd5cb1c5bae3ed2440b47688"></script>
+    <script type="text/javascript">window.bd && bd._qdc && bd._qdc.init({app_id: 'd1701fea32e3b3397ce10cfc'});</script>
+    <link rel="stylesheet" href="pure-min.css">
+    <meta name="viewport"
+          content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="format-detection" content="telephone=no">
+</head>
+<body>
+<div id="waiting">
+    <p>请稍等</p>
+
+    <p>v2</p>
+</div>
+
+<div style="text-align: center;margin: auto auto auto auto ">
+    <div style="width: 100%">
+        <!--<button class="pure-button" style="width: 100%" onclick="generateLive()">躁起来</button>-->
+    </div>
+    <div id="background_color" style="padding-top: 200px;height:300px">
+        <div class="splash-head" id="slogan"
+             style="display:none;width: 50%;margin: auto auto auto auto;padding:50px 50px"></div>
+    </div>
+</div>
+
+<style>
+    .splash-head {
+        font-size: 20px;
+        font-weight: bold;
+        color: white;
+        border: 4px solid white;
+        padding: 1em 1.6em;
+        font-weight: 100;
+        border-radius: 5px;
+        line-height: 1em;
+    }
+</style>
+
+<script>
+    var guid = (function () {
+        function s4() {
+            return Math.floor((1 + Math.random()) * 0x10000)
+                    .toString(16)
+                    .substring(1);
+        }
+
+        return function () {
+            return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+                    s4() + '-' + s4() + s4() + s4();
+        };
+    })();
+
+    var body = document.getElementsByTagName('body')[0];
+    var slogan = document.getElementById('slogan');
+    $(document).ready(function () {
+        var fb = new Firebase("https://colorlive.firebaseio.com/test1");
+        fb.on("value", function (data) {
+            $(body).animate({
+                backgroundColor: data.val().bgColor
+            }, 1000);
+            slogan.innerHTML = data.val().slogan;
+            $('#slogan').css('display', (slogan.innerHTML && slogan.innerHTML != '') ? 'initial' : 'none');
+            $('#waiting').css('display', 'none');
+        });
+//        generateLive = function () {
+//            var newRoom = {id: guid()}
+//            var newUUID = guid();
+//            console.log("new room," + guid());
+//            var fb = new Firebase("https://colorlive.firebaseio.com/rooms");
+//            var rooms = fb.roomIds || [];
+//            rooms.push(newUUID);
+//            fb.set({roomIds: rooms});
+//        }
+    });
+</script>
+</body>
+</html>
