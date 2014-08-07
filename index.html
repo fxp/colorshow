@@ -1,15 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title></title>
-    <!--<script src="https://cdn.firebase.com/js/client/1.0.18/firebase.js"></script>-->
-    <script src="firebase.js"></script>
-    <script src="jquery-1.11.1.min.js"></script>
-    <script src="jquery.color-2.1.2.min.js"></script>
-    <script type="text/javascript" name="baidu-tc-cerfication"
-            src="http://apps.bdimg.com/cloudaapi/lightapp.js#79cd5a51dd5cb1c5bae3ed2440b47688"></script>
-    <script type="text/javascript">window.bd && bd._qdc && bd._qdc.init({app_id: 'd1701fea32e3b3397ce10cfc'});</script>
-    <link rel="stylesheet" href="pure-min.css">
+    <title>秀色</title>
     <meta name="viewport"
           content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no"/>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
@@ -18,18 +10,69 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="format-detection" content="telephone=no">
-</head>
-<body>
-<div id="waiting">
-    <p>请稍等</p>
+    <script src="firebase.js"></script>
+    <script src="jquery-1.11.1.min.js"></script>
+    <script src="jquery.color-2.1.2.min.js"></script>
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
 
-    <p>v2</p>
+    <script type="text/javascript" src="jsqrcode/grid.js"></script>
+    <script type="text/javascript" src="jsqrcode/version.js"></script>
+    <script type="text/javascript" src="jsqrcode/detector.js"></script>
+    <script type="text/javascript" src="jsqrcode/formatinf.js"></script>
+    <script type="text/javascript" src="jsqrcode/errorlevel.js"></script>
+    <script type="text/javascript" src="jsqrcode/bitmat.js"></script>
+    <script type="text/javascript" src="jsqrcode/datablock.js"></script>
+    <script type="text/javascript" src="jsqrcode/bmparser.js"></script>
+    <script type="text/javascript" src="jsqrcode/datamask.js"></script>
+    <script type="text/javascript" src="jsqrcode/rsdecoder.js"></script>
+    <script type="text/javascript" src="jsqrcode/gf256poly.js"></script>
+    <script type="text/javascript" src="jsqrcode/gf256.js"></script>
+    <script type="text/javascript" src="jsqrcode/decoder.js"></script>
+    <script type="text/javascript" src="jsqrcode/qrcode.js"></script>
+    <script type="text/javascript" src="jsqrcode/findpat.js"></script>
+    <script type="text/javascript" src="jsqrcode/alignpat.js"></script>
+    <script type="text/javascript" src="jsqrcode/databr.js"></script>
+
+</head>
+<body style="padding-top: 50px">
+<div id="waiting">
+    <p>加载中</p>
+
+    <p>秀色 ver 0.1</p>
 </div>
 
-<div style="text-align: center;margin: auto auto auto auto ">
-    <div style="width: 100%">
-        <!--<button class="pure-button" style="width: 100%" onclick="generateLive()">躁起来</button>-->
-    </div>
+<nav id="controlPanel" class="navbar navbar-default navbar-fixed-top" role="navigation"
+        style="display: none">
+    <a class="navbar-brand" onclick="generateLive()">躁起来（创建频道）</a>
+</nav>
+
+<div style="text-align: center;">
+    <!--<p>-->
+        <!--<button class="btn btn-default btn-lg">-->
+            <!--<div>躁起来</div>-->
+            <!--<div></div>-->
+        <!--</button>-->
+    <!--</p>-->
+    <!--<p>-->
+    <!--<button class="btn btn-info btn-lg" onclick="joinLive()">加入频道</button>-->
+    <!--</p>-->
+    <!--<div id="outdiv">-->
+
+    <!--</div>-->
+
+    <!--<input type="file" capture="camera" accept="image/*" id="takePictureField">-->
+
+    <!--<img id="yourimage">-->
+
+    <!--<div id="swatches">-->
+    <!--<div id="swatch0" class="swatch"></div>-->
+    <!--<div id="swatch1" class="swatch"></div>-->
+    <!--<div id="swatch2" class="swatch"></div>-->
+    <!--<div id="swatch3" class="swatch"></div>-->
+    <!--<div id="swatch4" class="swatch"></div>-->
+    <!--</div>-->
+
     <div id="background_color" style="padding-top: 200px;height:300px">
         <div class="splash-head" id="slogan"
              style="display:none;width: 50%;margin: auto auto auto auto;padding:50px 50px"></div>
@@ -50,6 +93,30 @@
 </style>
 
 <script>
+
+    var QueryString = function () {
+        // This function is anonymous, is executed immediately and
+        // the return value is assigned to QueryString!
+        var query_string = {};
+        var query = window.location.search.substring(1);
+        var vars = query.split("&");
+        for (var i = 0; i < vars.length; i++) {
+            var pair = vars[i].split("=");
+            // If first entry with this name
+            if (typeof query_string[pair[0]] === "undefined") {
+                query_string[pair[0]] = pair[1];
+                // If second entry with this name
+            } else if (typeof query_string[pair[0]] === "string") {
+                var arr = [ query_string[pair[0]], pair[1] ];
+                query_string[pair[0]] = arr;
+                // If third or later entry with this name
+            } else {
+                query_string[pair[0]].push(pair[1]);
+            }
+        }
+        return query_string;
+    }();
+
     var guid = (function () {
         function s4() {
             return Math.floor((1 + Math.random()) * 0x10000)
@@ -66,24 +133,89 @@
     var body = document.getElementsByTagName('body')[0];
     var slogan = document.getElementById('slogan');
     $(document).ready(function () {
-        var fb = new Firebase("https://colorlive.firebaseio.com/test1");
-        fb.on("value", function (data) {
-            $(body).animate({
-                backgroundColor: data.val().bgColor
-            }, 1000);
-            slogan.innerHTML = data.val().slogan;
-            $('#slogan').css('display', (slogan.innerHTML && slogan.innerHTML != '') ? 'initial' : 'none');
+        if (QueryString['room']) {
+            var fb = new Firebase("https://colorlive.firebaseio.com/rooms/" + QueryString['room']);
+            fb.on("value", function (data) {
+                $(body).animate({
+                    backgroundColor: data.val().backgroundColor
+                }, 1000);
+                slogan.innerHTML = data.val().slogan;
+                $('#slogan').css('display', (slogan.innerHTML && slogan.innerHTML != '') ? 'initial' : 'none');
+                $('#waiting').css('display', 'none');
+                $('#controlPanel').css('display', 'initial');
+            });
+
+        } else {
             $('#waiting').css('display', 'none');
-        });
-//        generateLive = function () {
-//            var newRoom = {id: guid()}
-//            var newUUID = guid();
-//            console.log("new room," + guid());
-//            var fb = new Firebase("https://colorlive.firebaseio.com/rooms");
-//            var rooms = fb.roomIds || [];
-//            rooms.push(newUUID);
-//            fb.set({roomIds: rooms});
-//        }
+            $('#controlPanel').css('display', 'initial');
+        }
+        generateLive = function () {
+            var newRoom = {id: guid(), backgroundColor: "white", slogan: ""};
+            var qrcode = "http://api.qrserver.com/v1/create-qr-code/?data="
+                    + encodeURIComponent("http://colorshow.qiniudn.com/newindex.html?room=" + newRoom.id)
+                    + "&size=256x256";
+            newRoom.qrcode = qrcode;
+            var fb = new Firebase("https://colorlive.firebaseio.com/rooms/" + newRoom.id);
+            fb.set(newRoom, function (error) {
+                if (error) {
+                    alert("Data could not be saved." + error);
+                } else {
+                    location.href = "admin.html?room=" + newRoom.id;
+                }
+            });
+        }
+        qrcode.callback = function (data) {
+            console.log('got', data);
+        }
+
+        joinLive = function () {
+            setwebcam();
+        }
+
+
+        function success(stream) {
+            if (webkit)
+                v.src = window.webkitURL.createObjectURL(stream);
+            else if (moz) {
+                v.mozSrcObject = stream;
+                v.play();
+            }
+            else
+                v.src = stream;
+            gUM = true;
+//            setTimeout(captureToCanvas, 500);
+        }
+
+        function error(error) {
+            gUM = false;
+            return;
+        }
+
+        setwebcam = function () {
+            var n = navigator;
+            var vidhtml = '<video id="v" autoplay></video>';
+            document.getElementById("outdiv").innerHTML = vidhtml;
+//            v = document.getElementById("v");
+
+            if (n.getUserMedia)
+                n.getUserMedia({video: true, audio: false}, success, error);
+            else if (n.webkitGetUserMedia) {
+                webkit = true;
+                n.webkitGetUserMedia({video: true, audio: false}, success, error);
+            }
+            else if (n.mozGetUserMedia) {
+                moz = true;
+                n.mozGetUserMedia({video: true, audio: false}, success, error);
+            }
+
+            //document.getElementById("qrimg").src="qrimg2.png";
+            //document.getElementById("webcamimg").src="webcam.png";
+//            document.getElementById("qrimg").style.opacity = 0.2;
+//            document.getElementById("webcamimg").style.opacity = 1.0;
+
+//            stype = 1;
+//            setTimeout(captureToCanvas, 500);
+        }
     });
 </script>
 </body>

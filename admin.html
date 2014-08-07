@@ -1,117 +1,188 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title></title>
-    <script src="firebase.js"></script>
-    <script src="jquery-1.11.1.min.js"></script>
-    <link rel="stylesheet" href="pure-min.css">
+    <title>秀色</title>
+    <meta name="viewport"
+          content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no"/>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport"
-          content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no"/>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="format-detection" content="telephone=no">
+    <script src="firebase.js"></script>
+    <script src="jquery-1.11.1.min.js"></script>
+    <script src="jquery.color-2.1.2.min.js"></script>
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
 </head>
-<body>
-<div id="colorPanel" class="pure-g">
-</div>
-<p>
+<body style="text-align: center">
 
-<form class="pure-form pure-g">
-    <input id="slogan" class="pure-u-2-3" type="text"/>
-</form>
-<button class="pure-button pure-u-2-3" onclick="setSlogan()">set</button>
-</p>
-<p class="pure-g">
-    <button class="pure-button pure-button-primary pure-u-1-2" onclick="startRandom()">random</button>
-    <button class="pure-button pure-u-1-2" onclick="stopRandom()">stop</button>
-</p>
+<div class="row">
+    <h1>你的房间</h1>
+    <h4>让小伙伴们扫描这个二维码吧</h4>
+    <img id="qrcode">
+</div>
+
+<div id="controlpanel">
+    <div class="row">
+        <h1>控制台</h1>
+        <h4>选择不同的颜色，让它充满世界吧</h4>
+
+        <p id="colorPanel">
+        </p>
+
+    </div>
+
+    <div>
+        <h1>说点什么</h1>
+
+        <div>
+            <div class="input-group input-group-lg">
+                <input id="slogan" type="text" class="form-control" placeholder="说点儿什么">
+            <span class="input-group-btn">
+                <button class="btn btn-default" type="button" onclick="setSlogan()">Go!</button>
+            </span>
+            </div>
+        </div>
+    </div>
+    <p class="row">
+
+    <h1>其他功能</h1>
+
+    <p>
+        <button class="btn btn-primary btn-lg col-lg-6" id="start_random" onclick="startRandom()">随机变换</button>
+    </p>
+    <p>
+        <button class="btn btn-default btn-lg col-lg-6 disabled" id="stop_random" onclick="stopRandom()">停止随机</button>
+    </p>
+    </p>
+
+    <p class="row">
+        <a href="index.html">
+            <button class="btn btn-danger btn-lg btn-block">
+                离开
+            </button>
+        </a>
+    </p>
+</div>
+
 <style>
     .colorBlock {
         margin: 5px;
         height: 50px;
         width: 200px;
     }
+
+    #controlpanel {
+        margin-top: 40px;
+    }
 </style>
 
 <script>
-    $(document).ready(function () {
-        var fb = new Firebase("https://colorlive.firebaseio.com/test1");
-        var body = document.getElementsByTagName('body')[0];
 
-        var COLORS = [
-            {'backgroundColor': '#cccccc'},
-            {'backgroundColor': '#f54041'},
-            {'backgroundColor': '#63b942'},
-            {'backgroundColor': '#289668'},
-            {'backgroundColor': '#075f9a'},
-            {'backgroundColor': '#ba9b0b'},
-            {'backgroundColor': '#fe3f3d'},
-            {'backgroundColor': 'black'}
-        ]
-
-        var generateColorPanel = function (colors) {
-            var colorPanels = "";
-            for (var i = 0; i < colors.length; i++) {
-                var c = colors[i];
-                colorPanels += "<div><button class='colorBlock pure-button pure-u-1-2' style='"
-                        + "background-color:" + c.backgroundColor
-                        + "' onclick='setColor(this)'>"
-                        + c.backgroundColor
-                        + "</button></div>";
+    var QueryString = function () {
+        // This function is anonymous, is executed immediately and
+        // the return value is assigned to QueryString!
+        var query_string = {};
+        var query = window.location.search.substring(1);
+        var vars = query.split("&");
+        for (var i = 0; i < vars.length; i++) {
+            var pair = vars[i].split("=");
+            // If first entry with this name
+            if (typeof query_string[pair[0]] === "undefined") {
+                query_string[pair[0]] = pair[1];
+                // If second entry with this name
+            } else if (typeof query_string[pair[0]] === "string") {
+                var arr = [ query_string[pair[0]], pair[1] ];
+                query_string[pair[0]] = arr;
+                // If third or later entry with this name
+            } else {
+                query_string[pair[0]].push(pair[1]);
             }
-            return colorPanels;
         }
+        return query_string;
+    }();
 
-        document.getElementById('colorPanel').innerHTML = generateColorPanel(COLORS);
+    console.log('room:' + JSON.stringify(QueryString));
 
-        var allSettings = {};
+    var fb = new Firebase("https://colorlive.firebaseio.com/rooms/" + QueryString['room']);
+    var body = document.getElementsByTagName('body')[0];
 
-        var setAll = function () {
-            fb.set({
-                bgColor: allSettings.backgroundColor,
-                slogan: allSettings.slogan
-            });
+    var COLORS = [
+        {'backgroundColor': '#cccccc'},
+        {'backgroundColor': '#f54041'},
+        {'backgroundColor': '#63b942'},
+        {'backgroundColor': '#289668'},
+        {'backgroundColor': '#075f9a'},
+        {'backgroundColor': '#ba9b0b'},
+        {'backgroundColor': '#fe3f3d'},
+        {'backgroundColor': 'black'}
+    ]
+
+    var generateColorPanel = function (colors) {
+        var colorPanels = "";
+        for (var i = 0; i < colors.length; i++) {
+            var c = colors[i];
+            colorPanels += "<div><button class='colorBlock btn col-lg-6' style='"
+                    + "background-color:" + c.backgroundColor
+                    + "' onclick='setColor(this)'>"
+                    + c.backgroundColor
+                    + "</button></div>";
         }
+        return colorPanels;
+    }
 
-        setColor = function (element) {
-            allSettings.backgroundColor = element.style.backgroundColor;
-            allSettings.backgroundColor = element.style.backgroundColor;
+    document.getElementById('colorPanel').innerHTML = generateColorPanel(COLORS);
+
+    var allSettings = {"backgroundColor": "#fe3f3d"};
+
+    var setAll = function () {
+        fb.set(allSettings);
+    }
+
+    setColor = function (element) {
+        allSettings.backgroundColor = element.style.backgroundColor;
+        allSettings.backgroundColor = element.style.backgroundColor;
+        setAll();
+    }
+
+    setSlogan = function () {
+        allSettings.slogan = document.getElementById('slogan').value;
+        setAll();
+    }
+
+    var randomTimer;
+
+    startRandom = function () {
+        if (randomTimer) {
+            return;
+        }
+        randomTimer = setInterval(function () {
+            allSettings.backgroundColor = COLORS[Math.floor(Math.random() * COLORS.length)].backgroundColor;
             setAll();
+        }, 2000);
+        $("#start_random").addClass("disabled");
+        $("#stop_random").removeClass("disabled");
+    }
+
+    stopRandom = function () {
+        if (randomTimer) {
+            window.clearInterval(randomTimer);
+            randomTimer = undefined;
         }
+        $("#start_random").removeClass("disabled");
+        $("#stop_random").addClass("disabled");
+    }
 
-        setSlogan = function () {
-            allSettings.slogan = document.getElementById('slogan').value;
-            setAll();
-        }
+    fb.on("value", function (data) {
+        allSettings = data.val();
+        body.style.backgroundColor = allSettings.backgroundColor;
+        $('#qrcode').attr('src', allSettings.qrcode);
+//        allSettings.backgroundColor = body.style.backgroundColor = data.val().bgColor || "white";
+//        allSettings.slogan = document.getElementById('slogan').value = data.val().slogan || "";
 
-        var randomTimer;
-
-        startRandom = function () {
-            if (randomTimer) {
-                return;
-            }
-            randomTimer = setInterval(function () {
-                allSettings.backgroundColor = COLORS[Math.floor(Math.random() * COLORS.length)].backgroundColor;
-                setAll();
-            }, 2000);
-        }
-
-        stopRandom = function () {
-            if (randomTimer) {
-                window.clearInterval(randomTimer);
-                randomTimer = undefined;
-            }
-        }
-
-        fb.on("value", function (data) {
-            allSettings.backgroundColor = body.style.backgroundColor = data.val().bgColor || "white";
-            allSettings.slogan = document.getElementById('slogan').value = data.val().slogan || "";
-        });
     });
-
 </script>
 </body>
 </html>
